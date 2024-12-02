@@ -1,12 +1,20 @@
 function Validator(options) {
     var selectorRules = {};
 
+    function getParent (inputElement, parent){
+        while(inputElement.parentElement && inputElement.parentElement.matches( parent))
+        {
+            inputElement=inputElement.parentElement;
+        }
+        return inputElement;
+    }
+
     function Validate(rule, inputElement) {
         // Vi tri dua message loi vao
-        var errorElement = inputElement.parentElement.querySelector(options.errorSelector);
+        var errorElement = getParent(inputElement,options.formGroup).querySelector(options.errorSelector);
 
         //Lay ra cac rule cua selector
-        var rules = selectorRules[rule.selector];
+        var rules = selectorRules[rule.selector]; 
 
         var errorMessage;
         //Lap qua tung rule
@@ -16,12 +24,14 @@ function Validator(options) {
         }
         if (errorMessage) {
             errorElement.innerText = errorMessage;
-            inputElement.parentElement.classList.add('invalid');
+            getParent(inputElement,options.formGroup).classList.add('invalid');
+            return true;
         }
         else {
             errorElement.innerText = '';
-            inputElement.parentElement.classList.remove('invalid');
+            getParent(inputElement,options.formGroup).classList.remove('invalid');
         }
+        return false;
 
     }
 
@@ -29,17 +39,6 @@ function Validator(options) {
     var formElement = document.querySelector(options.formName);
 
     if (formElement) {
-        //Khi submit form
-        formElement.onsubmit = function (e) {
-            e.preventDefault();
-
-            options.rules.forEach((rule) => {
-                Validate(rule, formElement.querySelector(rule.selector));
-            })
-
-        }
-
-
         //Lap qua moi rule cua form va lang nghe su kien
         options.rules.forEach((rule) => {
 
@@ -56,20 +55,46 @@ function Validator(options) {
 
 
             if (inputElement) {
-
-                
                 inputElement.onblur = function () {
-                    Validate(rule, inputElement);
+                    var v=Validate(rule, inputElement);
                 }
-                var errorElement = inputElement.parentElement.querySelector(options.errorSelector);
+        
+                var errorElement = getParent(inputElement,options.formGroup).querySelector(options.errorSelector);
                 inputElement.addEventListener("click", () => {
-                    
-                        errorElement.innerText = '';
-                        inputElement.parentElement.classList.remove('invalid');
-                    
+
+                    errorElement.innerText = '';
+                    getParent(inputElement,options.formGroup).classList.remove('invalid');
+
                 })
             }
         });
+
+        //Khi submit form
+        formElement.onsubmit = function (e) {
+            e.preventDefault();
+
+            var isFormValid=true;
+            //Kiem tra xem con input nao chua hop le
+            options.rules.forEach((rule) => {
+                var isInvalid=Validate(rule, formElement.querySelector(rule.selector));
+                if(isInvalid) isFormValid=false;
+            })
+            if(isFormValid)
+            {
+                if(typeof options.onSubmit==='function')
+                {
+                    var enableInputs=formElement.querySelectorAll('[name]')
+
+                    var formDatas=Array.from(enableInputs).reduce(function(values,input){
+                        values[input.name]=input.value;
+                        return values;
+                    }, {});
+                    options.onSubmit(formDatas);
+                }
+
+            }
+
+        }
     }
 }
 

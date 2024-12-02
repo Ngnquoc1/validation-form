@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validiation Form</title>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./asset/style.css">
 </head>
 <body>
     <div class="main">
@@ -41,10 +41,11 @@
           <button class="form-submit">Đăng ký</button>
         </form>
       </div>
-      <script src="./main.js"></script>
+      <script src="./asset/main.js"></script>
       <script>
         Validator({
             formName:'#form-1',
+            formGroup:'.form-group',
             errorSelector:'.form-message',
             rules: 
             [ 
@@ -57,7 +58,10 @@
                 Validator.isCofirmed('#password_confirmation',function() {
                     return document.querySelector('#form-1 #password').value;
                 })
-            ]
+            ],
+            onSubmit: function(data) {
+              console.log(data);
+            }
         })
       </script>
 </body>
